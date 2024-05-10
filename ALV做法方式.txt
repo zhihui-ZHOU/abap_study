@@ -1,0 +1,105 @@
+ALV
+一、REUSE_ALV_GRID_DISPLAY（伝統的、簡単的）
+１、構造名の定量の定義
+CONSTANTS W_STRUCTURE TYPE DD02L-TABNAME VALUE '＊YTEST_OUTPUT1'.
+
+２、列の属性 行の属性の定義
+DATA LT_FIELDCAT  TYPE SLIS_T_FIELDCAT_ALV.   "列の属性
+DATA LW_LAYOUT   TYPE SLIS_LAYOUT_ALV.        "行の属性
+
+* 出力内部テーブルの存在チェック
+
+３、項目カタログの作成
+    CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
+      EXPORTING
+        I_PROGRAM_NAME              = SY-REPID
+        I_STRUCTURE_NAME            = W_STRUCTURE
+      CHANGING
+        CT_FIELDCAT                         = LT_FIELDCAT
+      EXCEPTIONS
+        INCONSISTENT_INTERFACE = 1
+        PROGRAM_ERROR                = 2
+        OTHERS                                 = 3.
+    IF SY-SUBRC <> 0.
+        MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+          WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4 .
+
+    ENDIF.
+
+
+４、項目カタログ　と　レイアウトの変更
+4-1、項目カタログの変更
+    LOOP AT LT_FIELDCAT ASSIGNING FIELD-SYMBOL(<FS_FIELDCAT>).
+      CASE <FS_FIELDCAT>-FIELDNAME.
+        WHEN 'CALM'.
+* ファールドの描写
+          <FS_FIELDCAT>-SELTEXT_S  = TEXT-012. "カレンダ月
+          <FS_FIELDCAT>-SELTEXT_M = TEXT-012. "カレンダ月
+          <FS_FIELDCAT>-SELTEXT_L   = TEXT-012. "カレンダ月
+* ファールド描写の表示指定
+          <FS_FIELDCAT>-DDICTXT     = 'L'.
+* ファールドの先駆零の表示
+          <FS_FIELDCAT>-LZERO         = ABAP_ON.
+      ENDCASE.
+    ENDLOOP.
+
+4-2、レイアウトの変更
+* レイアウトのゼブラ表示
+LW_LAYOUT-ZEBRA = ABAP_ON.
+* レイアウトの列寛適度
+LW_LAYOUT-COLWIDTH_OPTIMIZE = ABAP_ON.
+
+
+
+
+５、ALV出力
+
+    CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+      EXPORTING
+        I_CALLBACK_PROGRAM = SY-REPID
+        I_GRID_TITLE                   = V_PRONB
+        IS_LAYOUT                      = LW_LAYOUT
+        IT_FIELDCAT                    = LT_FIELDCAT
+      TABLES
+        T_OUTTAB                      = T_OPUT
+      EXCEPTIONS
+        PROGRAM_ERROR         = 1
+        OTHERS                          = 2.
+
+    IF SY-SUBRC <> 0.
+        MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+          WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4 .
+
+    ENDIF.
+
+
+
+
+
+二、REUSE_ALV_GRID_DISPLAY_LVC（現代的、複雑的、活用的）　
+
+
+
+三、ALVのDEMO
+
+  CL_DEMO_OUTPUT=>DISPLAY( GT_TAB ). 
+
+
+
+四、GRID 
+
+
+DATA(GRID) = NEW CL_GUI_ALV_GRID(
+     I_PARENT = CL_GUI_CUSTOM_CONTAINER=>SCREEN0
+).
+
+
+GRID->SET_TABLE_FOR_FIRST_DISPLAY(
+  EXPORTING
+    I_STRUCTURE_NAME = 'VBAK'
+  CHANGING
+    IT_OUTTAB = GT_TAB
+).
+
+CALL SCREEN 100.
+

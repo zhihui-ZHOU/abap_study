@@ -1,0 +1,145 @@
+
+
+*2024/03/04
+* 变量（2）
+*  系统变量
+*  自定义变量
+
+
+
+
+
+* 系统变量（6）
+
+WRITE: SY-DATUM.    "当前日期
+WRITE: SY-UZEIT.       "当前时间
+WRITE: SY-LANGU.     "当前语言
+WRITE: SY-UNAME.     "当前用户
+
+WRITE: SY-INDEX.      "循环次数
+
+
+*自定义变量（6）
+
+* C 字符型
+* 例:
+DATA V_NAME TYPE C LENGTH 2 VALUE 'AB'.
+WRITE: / V_NAME.
+
+DATA V_TEST TYPE C LENGTH 2 VALUE '程序'.
+WRITE: /(4)  V_TEST.
+
+
+* N 数字型
+* 自动补零 小数变个位数
+* 注意：非数字可以正常运行
+* 例:
+DATA V_NUMBER TYPE N LENGTH 4 .
+V_NUMBER = '12'.
+WRITE: / V_NUMBER.
+
+
+* I  整数型
+* 无指定长度 定义钱、年龄等  前有空格
+* 注意：如果是小数四舍五入  放非数字出现bug
+* 例:
+DATA V_AGE TYPE I .
+V_AGE = '12'.
+WRITE: / V_AGE.
+
+* P 小数型
+* 例:
+DATA V_DEC TYPE P DECIMALS 3.
+V_DEC = '12'.
+WRITE: / V_DEC.
+
+* D 日期型  8位
+* 例:
+DATA V_DATE TYPE D.
+V_DATE = '20240304'.
+WRITE: / V_DATE.
+
+* T 时间型 6位
+* 例:
+DATA V_TIME TYPE T.
+V_TIME = '105129'.
+WRITE: / V_TIME.
+
+
+
+
+SKIP.
+SKIP.
+SKIP.
+SKIP.
+SKIP.
+SKIP.
+
+
+
+
+* 结构体  存储多字段
+* 不能直接用  用于定义表格
+
+
+* 结构体流程
+*  定义结构体
+*  定义结构变量
+*  定义内表
+
+*  结构变量填充字段
+*  结构变量添加到内表
+
+*  循环读出内表的数据
+
+
+
+*例
+TYPES:
+  BEGIN OF TY_STUDENT,     " BEGING OF 结构名,
+    NAME TYPE C LENGTH 4,   "字段名
+    NUMBER TYPE N LENGTH 2,
+    AGE TYPE I ,
+  END OF TY_STUDENT.         "END OF 结构名.
+
+* 格式同定义变量 定义表格 参照结构体
+DATA S_STUDENT TYPE TY_STUDENT.
+* 定义内部表
+DATA T_STUDENT TYPE TABLE OF TY_STUDENT.
+
+  S_STUDENT-NAME = '李四'.
+  S_STUDENT-NUMBER = '12'.
+  S_STUDENT-AGE = '10'.
+  APPEND S_STUDENT TO T_STUDENT.
+
+  S_STUDENT-NAME = '张三'.
+  S_STUDENT-NUMBER = '13'.
+  S_STUDENT-AGE = '12'.
+  APPEND S_STUDENT TO T_STUDENT.
+
+* 读出内部表的数据
+LOOP AT T_STUDENT INTO S_STUDENT.
+
+  WRITE:    /(60) SY-ULINE,
+               / SY-VLINE,
+               S_STUDENT-NAME,
+               20 SY-VLINE,
+               S_STUDENT-NUMBER,
+               40 SY-VLINE,
+               S_STUDENT-AGE,
+               60 SY-VLINE.
+
+  ENDLOOP.
+
+WRITE:  /(60) SY-ULINE.
+
+
+
+
+
+SKIP.
+SKIP.
+SKIP.
+SKIP.
+SKIP.
+SKIP.

@@ -1,0 +1,143 @@
+
+* 20240305
+
+
+DATA AAA TYPE C LENGTH 10.
+AAA = 'ABCDEF'.
+DATA BBB TYPE I.   "定义一个储存数字的变量 BBB
+DATA CCC TYPE C .   "定义一个储存类型的字符变量 CCC
+
+*1确定字符定义长度
+DESCRIBE FIELD AAA LENGTH BBB IN CHARACTER MODE .
+WRITE: BBB.
+
+*2确定字符实际长度
+BBB = STRLEN( AAA ).
+WRITE: BBB.
+
+*3确定类型
+DESCRIBE FIELD AAA TYPE CCC .
+WRITE: CCC.
+
+*清空变量
+CLEAR AAA.
+WRITE: '清空变量后', AAA.
+SKIP.
+
+*4确定小数位
+DATA DDD TYPE P DECIMALS 3.
+DESCRIBE FIELD DDD DECIMALS BBB.
+WRITE: BBB.
+
+*5确定内表条数
+DESCRIBE TABLE T_STUDENT LINES BBB.
+WRITE: BBB.
+
+
+
+
+
+
+*  分支处理 IF循环 （可多个变量）
+
+DATA EEE TYPE I.
+EEE = '10'.
+
+  IF EEE > 10.
+    WRITE: '大于10'.
+
+  ELSEIF EEE < 10.
+    WRITE: '小于10'.
+
+  ELSE.
+    WRITE: '等于10'.
+  ENDIF.
+
+
+
+
+
+
+*  多重条件分支处理CASE，一个变量
+DATA FFF TYPE C.
+FFF = 'G'.
+
+CASE FFF.
+  WHEN 'A'.
+    WRITE:'A'.
+  WHEN 'B'.
+    WRITE:'B'.
+  WHEN 'C'.
+    WRITE:'C'.
+  WHEN 'D'.
+    WRITE:'D'.
+  WHEN 'E'.
+    WRITE:'E'.
+  WHEN 'F'.
+    WRITE:'F'.
+  WHEN 'G'.
+    WRITE:'G'.
+  WHEN OTHERS.
+    WRITE:'W'.
+
+  ENDCASE.
+
+
+
+* 用循环算结果
+* 1+2+3...50+61+62...+100=?
+
+* DO循环
+DATA V_SUM TYPE I.
+
+DO.
+
+    IF SY-INDEX > 100.
+      EXIT.
+    ENDIF.
+
+    IF SY-INDEX > 50 AND SY-INDEX < 61.
+      CONTINUE.
+    ENDIF.
+
+   V_SUM = V_SUM + SY-INDEX.
+
+ENDDO.
+
+WRITE:   V_SUM.
+
+
+* DO 第二种做法。
+V_SUM = '0'.
+  DO 100 TIMES.
+
+    IF SY-INDEX > 50 AND SY-INDEX < 61.
+      CONTINUE.
+    ENDIF.
+
+   V_SUM = V_SUM + SY-INDEX.
+ENDDO.
+
+WRITE:  V_SUM.
+
+
+
+
+V_SUM = '0'.
+* WHILE循环
+WHILE SY-INDEX < 101.       "符合条件才能入循环
+  IF SY-INDEX > 50 AND SY-INDEX < 61.
+      CONTINUE.
+    ENDIF.
+
+   V_SUM = V_SUM + SY-INDEX.
+
+ENDWHILE.
+WRITE:  V_SUM.
+
+SKIP.
+SKIP.
+SKIP.
+SKIP.
+SKIP.
+SKIP.

@@ -1,0 +1,225 @@
+*&---------------------------------------------------------------------*
+*& Report YTEST_TAKAI001_20240321
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT YTEST_TAKAI001_20240321_02.
+* 一、参照结构体建表类型
+* 1.1 先建一个结构体
+TYPES:
+  BEGIN OF TP_DATE,
+    DATE TYPE D,
+    TIME TYPE T,
+  END OF TP_DATE.
+* 1.2 参考结构体，建表类型
+TYPES L_DT TYPE TABLE OF TP_DATE.
+
+
+
+
+
+
+* 二、把变量转为range表
+* 2.1 定义一个range内表 和相匹配的工作区
+DATA T_EBELN TYPE RANGE OF EBELN.        "range内表
+DATA S_EBELN LIKE LINE  OF T_EBELN.      "工作区
+
+
+* 2.2 给range表赋值。
+* 2.2.1 等于
+S_EBELN-SIGN   = 'I'.
+S_EBELN-OPTION = 'EQ'.
+S_EBELN-LOW    = '4500000000'.    "也可以用变量赋值
+APPEND S_EBELN TO T_EBELN.        "把值加入内表
+
+* 2.2.2 包含
+S_EBELN-SIGN   = 'I'.
+S_EBELN-OPTION = 'BT'.
+S_EBELN-LOW    = '4500000000'.
+S_EBELN-HIGH   = '4500000009'.
+APPEND S_EBELN TO T_EBELN.
+
+* 2.2.3 匹配
+S_EBELN-SIGN   = 'I'.
+S_EBELN-OPTION = 'CP'.
+S_EBELN-LOW    = '45*'.
+APPEND S_EBELN TO T_EBELN.
+
+
+
+
+
+* 三、 select取数
+* 3.1 解释select
+SELECT
+    EKKO~EBELN,
+    EKPO~EBELP,
+    EKPO~MENGE,
+    EKPO~MEINS,
+    EKET~ETENR,
+    EKET~EINDT
+  FROM EKKO  "来自第一个表
+  INNER JOIN EKPO "添加第二个表
+  ON EKKO~EBELN = EKPO~EBELN       "条件是 一表字段 等于 二表字段
+
+  INNER JOIN EKET "前两个表的筛选结果 作为条件，再添加 三表
+  ON  EKPO~EBELN = EKET~EBELN      "条件是 二表字段1 等于 三表字段1
+  AND EKPO~EBELP = EKET~EBELP      "条件是 二表字段2 等于 三表字段2
+
+  INTO TABLE @DATA(T_TABL)   "放入表中
+  WHERE EKKO~EBELN IN @T_EBELN.  "指定条件
+
+* 3.2 SELECT注意点
+* 3.2.1 SELECT连接数据库的方式
+" 一般来说，常用INNER JOIN的方式
+" 当第二个表的数据不是很重要，可有可无时用LEFT OUTER JOIN
+" 当用内表筛选数据表时，用FOR ALL ENTRIES IN的方式  排空+排序删重
+
+* 3.2.2 SELECT结果放入内表有两种方式
+" 一是 INTO CORRESPONDING FILED OF TABLE 内表   要注意先建结构体
+" 二是 INTO TABLE @DATA(内表)  更加动态，后续要建工作区
+
+* 3.2.3 SELECT时选取字段
+" 尽量指定字段 少用*     提高效率
+
+
+* 四、定义选择画面
+* 4.1 单值输入框
+PARAMETERS SS_EBELN TYPE EBELN .
+" LENGTH XX            定义输入框的输入长度
+" VISIBLE LENGTH XX    定义输入框的显示长度
+" OBLIGATORY           必输
+" DEFAULT 'XXX'        初期值
+
+
+* 4.2 下拉框
+PARAMETERS L_EBELN  AS LISTBOX VISIBLE LENGTH 20 .
+" 必须要有显示长度
+" 必输   OBLIGATORY
+" 初期值 DEFAULT 'XXX'
+
+* 4.3 范围选择框
+* 4.3.1 定义类型变量
+DATA V_EBELN TYPE EBELN.     " 类型变量参照数据元素
+* 4.3.2 定义范围选择框
+SELECT-OPTIONS SO_EBELN FOR V_EBELN NO INTERVALS.
+" 必须参照类型变量
+" 必输   OBLIGATORY
+" 初期值 DEFAULT 'XXX'
+" 不显示复选按钮 NO-EXTENSION
+" 不显示后输入框 NO INTERVALS
+
+
+* 4.4 单选按钮
+PARAMETERS RD_1 RADIOBUTTON GROUP G_1 DEFAULT 'X'.
+PARAMETERS RD_2 RADIOBUTTON GROUP G_1.
+" 必须分组 GROUP G_1
+" 默认勾选 DEFAULT 'X'
+
+
+* 4.5 复选框
+* 4.5.1 复选框
+PARAMETERS CH_EBE2 AS CHECKBOX .
+PARAMETERS CH_EBE3 AS CHECKBOX .
+* 4.5.2 互斥选择
+PARAMETERS CH_EBELN AS CHECKBOX USER-COMMAND UCOM1.
+" 必须要有触发动作 USER-COMMAND UCOM1
+
+
+* 4.6 放入框内 框的名字
+SELECTION-SCREEN BEGIN OF BLOCK B_1 WITH FRAME TITLE TEXT-001 .
+SELECTION-SCREEN END   OF BLOCK B_1.
+" 框要有开有合
+" 标题名字 WITH FRAME TITLE TEXT-001
+
+* 4.7 放到一行
+SELECTION-SCREEN BEGIN OF LINE.
+SELECTION-SCREEN END OF LINE.
+"  要有开有合
+
+
+* 4.8 屏幕空行
+SELECTION-SCREEN SKIP.
+
+
+* 五、选择画面相关设置
+
+* 5.1 互斥选项 如果选了B的话，A就不能输入
+* 5.1.1定义单值输入框、范围输入框、复选框
+*   5.1.1.1 单值输入框变量A
+PARAMETERS AA_EBELN TYPE EBELN .
+*   5.1.1.2 范围输入框B
+SELECT-OPTIONS BB_EBELN FOR V_EBELN .
+*   5.1.1.3 复选框变量C 带动作
+PARAMETERS CCH_EBE4 AS CHECKBOX  USER-COMMAND UCOM2.
+
+* 5.1.2 loop修改必须放在 PBO 事件中       AT SELECTION-SCREEN OUTPUT.
+AT SELECTION-SCREEN OUTPUT.
+* 5.1.3 循环屏幕 互斥单值输入框
+  LOOP AT SCREEN.                "  循环屏幕
+    IF SCREEN-NAME = 'AA_EBELN'.    "    如果屏幕名为A
+      IF CCH_EBE4  = 'X'.           "         并且复选框C被选中
+        SCREEN-INPUT  = '0'.        "    那么A输入框不输入
+        SCREEN-ACTIVE = '0'.        "    那么A输入框不显示
+        CLEAR SS_EBELN.             "    记得把不能输入的变量，清空
+      ENDIF.
+    ENDIF.
+    MODIFY SCREEN.               "  修改屏幕
+  ENDLOOP.
+
+* 5.1.4 循环屏幕 互斥范围输入框
+  LOOP AT SCREEN.                 "  循环屏幕
+    IF SCREEN-NAME = 'BB_EBELN-LOW'     "    如果屏幕名为B的前后方输入框
+      OR SCREEN-NAME = 'BB_EBELN-HIGH' .
+      IF CCH_EBE4  = 'X'.               "         并且复选框C被选中
+        SCREEN-INPUT  = '0'.            "    那么输入框不输入
+        CLEAR SS_EBELN.                 "    记得把不能输入的变量，清空
+      ENDIF.
+    ENDIF.
+    MODIFY SCREEN.               "  修改屏幕
+  ENDLOOP.
+
+
+
+* 5.2 检查画面输入是否正确
+* 5.2.1 必须在PAI事件中 AT SELECTION-SCREEN.
+AT SELECTION-SCREEN.
+* 5.2.2 查询结果是否存在
+IF AA_EBELN IS NOT INITIAL.
+  SELECT COUNT(*)
+    FROM EKKO
+   WHERE EBELN = AA_EBELN.
+
+* 5.2.3 查询失败则弹出弹窗
+  IF SY-SUBRC <> 0.
+    MESSAGE E001(YTEST_TAKAI001MES) .  " &1&2输入错误，请重新检查。
+  ENDIF.
+ENDIF.
+
+
+
+START-OF-SELECTION.
+
+
+SELECT
+    EKPO~EBELN,
+    EKPO~EBELP,
+    EKPO~MENGE,
+    EKPO~MEINS
+  FROM  EKPO
+  INTO TABLE @DATA(T_TAB)   "放入表中
+  UP TO  50 ROWS
+  WHERE EKPO~EBELP = '10'.
+BREAK-POINT.
+WRITE: / 'Number of rows:',lines( t_tab ).
+
+.
+
+
+
+
+
+
+* 六、取数
+
+END-OF-SELECTION.

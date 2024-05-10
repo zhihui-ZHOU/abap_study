@@ -1,0 +1,48 @@
+
+
+* 20240306
+*关于内表的操作
+
+
+
+
+* 1、加数据在最后一条
+
+APPEND 结构变量 TO 内表.
+
+* 2、 插入数据
+INSERT 结构变量 TO 内表 INDEX 行数.
+
+* 3、 删除数据
+* 指定位置
+DELETE 内表 INDEX 行数.
+* 指定条件
+DELETE 内表 WHERE 条件.
+
+* 4、 修改内表数据 设定结构变量才能修改
+MODIFY 内表 FROM 结构变量
+      TRANSPORTING 字段
+                   (WHERE 条件).
+
+* 5、 读取内表数据
+*指定位置
+READ TABLE 内表 INTO 结构变量 INDEX 行数.
+*指定条件
+READ TABLE 内表 INTO 结构变量 WITH KEY 条件.
+ 
+* 6、 排序
+* 正序
+SORT 内表 BY 字段 ASCENDING.
+* 倒叙
+SORT 内表 BY 字段 DESCENDING.
+
+* 7、 删重复数据
+DELETE ADJACENT DUPLICATES FROM 内表
+          COMPARING 字段(可并列).
+
+* 8、 附条件循环
+LOOP AT 内表 WHERE 条件.
+* 循环指定行
+LOOP AT 内表 INTO 结构变量 
+                     FROM 行数 TO 行数.
+  
